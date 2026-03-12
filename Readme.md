@@ -19,7 +19,7 @@ The [Jaya R package](https://cran.r-project.org/package=Jaya) implements a gradi
 
 ## Tests
 
-### Easy Test — `Easyyy/`
+### Easy Test — [`Easyyy/`](https://github.com/delta17920/r/tree/main/Easyyy)
 
 Optimizes a Single-Hidden-Layer Neural Network (`nnet`) on the `Pima` diabetes dataset using the Jaya algorithm. Simultaneously tunes two hyperparameters:
 
@@ -31,17 +31,17 @@ Optimizes a Single-Hidden-Layer Neural Network (`nnet`) on the `Pima` diabetes d
 The Brier Score (MSE of predicted probabilities) is used as the objective instead of flat classification accuracy, providing a smooth continuous signal for the optimizer to descend.
 
 **Files:**
-- `easy_test.Rmd` — full reproducible RMarkdown source
-- `README.md` — knitted github_document output with results and convergence plot
+- [`easy_test.Rmd`](https://github.com/delta17920/r/blob/main/Easyyy/Jaya_Easy_Test.Rmd) — full reproducible RMarkdown source
+- [`README.md`](https://github.com/delta17920/r/blob/main/Easyyy/Readme.md) — knitted github_document output with results and convergence plot
 
-### Medium Test — `Mediummm/`
+### Medium Test — [`Mediummm/`](https://github.com/delta17920/r/tree/main/Mediummm)
 
 Proposes and justifies a complete encoding-decoding strategy enabling Jaya to operate over mixed-type hyperparameter spaces. Covers continuous (linear and log-scale), integer, categorical, ordinal, and conditional parameters. Includes implementation pseudocode, a proof-of-concept test, and a 1000-sample validation experiment.
 
 **Files:**
-- `gsoc_jaya_encoding.md` — full proposal document
+- [`Readme.md`](https://github.com/delta17920/r/blob/main/Mediummm/Readme.md) — full proposal document
 
-### Hard Test — `Harddd/`
+### Hard Test — [`Harddd/`](https://github.com/delta17920/r/tree/main/Harddd)
 
 A minimal but fully functional R package implementing `jaya_tune()`, a hyperparameter optimization function built on the Jaya algorithm with native support for continuous, integer, and categorical parameters via an encoding-decoding layer.
 
@@ -51,11 +51,13 @@ A minimal but fully functional R package implementing `jaya_tune()`, a hyperpara
 - Log-scale decoding for parameters spanning multiple orders of magnitude
 - Input validation with informative error messages
 - 15 unit tests via `testthat` covering all parameter types and edge cases
-- Passes `R CMD check` with 0 errors, 0 warnings, 0 notes
-- Verified clean on win-builder (R-devel and R-release)
+- Verified clean on win-builder (R-devel and R-release) with 0 errors and 0 warnings
 
 **Files:**
-- `jayaHPO/` — complete R package source
+- [`jayaHPO/`](https://github.com/delta17920/r/tree/main/Harddd/jayaHPO) — complete R package source
+- [`jayaHPO/R/jaya_tune.R`](https://github.com/delta17920/r/blob/main/Harddd/jayaHPO/R/jaya_tune.R) — core implementation
+- [`jayaHPO/tests/testthat/test-jaya_tune.R`](https://github.com/delta17920/r/blob/main/Harddd/jayaHPO/tests/testthat/test-jaya_tune.R) — unit tests
+- [`jayaHPO/proof/`](https://github.com/delta17920/r/tree/main/Harddd/jayaHPO/proof) — win-builder and test screenshots
 
 ## Key Design Principle
 
