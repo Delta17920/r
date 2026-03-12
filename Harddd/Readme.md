@@ -6,7 +6,7 @@
 
 ## Overview
 
-`jayaHPO` is a minimal R package implementing `jaya_tune()`, a hyperparameter optimization function built on the Jaya algorithm. It supports mixed-type parameter spaces (continuous, integer, and categorical) via an encoding-decoding layer, and internally operates on a normalized `[0,1]^D` search space consistent with the design proposed in the Medium Test.
+[`jayaHPO`](https://github.com/delta17920/r/tree/main/Harddd/jayaHPO) is a minimal R package implementing `jaya_tune()`, a hyperparameter optimization function built on the Jaya algorithm. It supports mixed-type parameter spaces (continuous, integer, and categorical) via an encoding-decoding layer, and internally operates on a normalized `[0,1]^D` search space consistent with the design proposed in the Medium Test.
 
 The package fulfills all Hard Test requirements:
 
@@ -15,6 +15,15 @@ The package fulfills all Hard Test requirements:
 - Includes 15 unit tests via `testthat` covering all parameter types and edge cases
 - Builds successfully on win-builder (R-devel and R-release) with 0 errors and 0 warnings
 
+## Files
+
+| File | Description |
+|------|-------------|
+| [`jayaHPO/R/jaya_tune.R`](https://github.com/delta17920/r/blob/main/Harddd/jayaHPO/R/jaya_tune.R) | Core implementation |
+| [`jayaHPO/tests/testthat/test-jaya_tune.R`](https://github.com/delta17920/r/blob/main/Harddd/jayaHPO/tests/testthat/test-jaya_tune.R) | Unit tests |
+| [`jayaHPO/DESCRIPTION`](https://github.com/delta17920/r/blob/main/Harddd/jayaHPO/DESCRIPTION) | Package metadata |
+| [`jayaHPO/man/jaya_tune.Rd`](https://github.com/delta17920/r/blob/main/Harddd/jayaHPO/man/jaya_tune.Rd) | Generated documentation |
+| [`jayaHPO/proof/`](https://github.com/delta17920/r/tree/main/Harddd/jayaHPO/proof) | Win-builder and test screenshots |
 
 ## Usage
 
@@ -115,7 +124,7 @@ Passing `[0,1]^D` to Jaya rather than raw parameter bounds prevents large-range 
 
 All 15 tests pass locally across all parameter types and edge cases.
 
-![Tests passing](proof/tests_passing.png)
+![Tests passing](jayaHPO/proof/tests_passing.png)
 
 ### Win-builder R-devel
 
@@ -136,7 +145,7 @@ New submission
 
 This note is **automatically generated for every package that has never been submitted to CRAN before**. It is not a code issue, not a warning, and not fixable — it will disappear permanently after the first accepted CRAN submission. CRAN policy explicitly exempts this note from causing rejection. No errors, no warnings.
 
-![Win-builder R-devel](proof/winbuilder_devel.png)
+![Win-builder R-devel](jayaHPO/proof/winbuilder_devel.png)
 
 ### Win-builder R-release
 
@@ -146,28 +155,30 @@ Every check returned `OK`. Tests ran successfully (`Running 'testthat.R'` — OK
 
 **Status: 1 NOTE** — same "New submission" note as above, same explanation applies.
 
-![Win-builder R-release](proof/winbuilder_release.png)
+![Win-builder R-release](jayaHPO/proof/winbuilder_release.png)
 
 ## File Structure
 
 ```
-jayaHPO/
-├── .gitignore
-├── .Rbuildignore
-├── DESCRIPTION
-├── NAMESPACE
-├── R/
-│   └── jaya_tune.R
-├── inst/
-│   └── WORDLIST
-├── man/
-│   └── jaya_tune.Rd
-├── proof/
-│   ├── tests_passing.png
-│   ├── winbuilder_devel.png
-│   └── winbuilder_release.png
-└── tests/
-    ├── testthat.R
-    └── testthat/
-        └── test-jaya_tune.R
+Harddd/
+├── README.md          ← this file
+└── jayaHPO/
+    ├── .gitignore
+    ├── .Rbuildignore
+    ├── DESCRIPTION
+    ├── NAMESPACE
+    ├── R/
+    │   └── jaya_tune.R
+    ├── inst/
+    │   └── WORDLIST
+    ├── man/
+    │   └── jaya_tune.Rd
+    ├── proof/
+    │   ├── tests_passing.png
+    │   ├── winbuilder_devel.png
+    │   └── winbuilder_release.png
+    └── tests/
+        ├── testthat.R
+        └── testthat/
+            └── test-jaya_tune.R
 ```
