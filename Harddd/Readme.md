@@ -25,6 +25,12 @@ The package fulfills all Hard Test requirements:
 | [`jayaHPO/man/jaya_tune.Rd`](https://github.com/delta17920/r/blob/main/Harddd/jayaHPO/man/jaya_tune.Rd) | Generated documentation |
 | [`jayaHPO/proof/`](https://github.com/delta17920/r/tree/main/Harddd/jayaHPO/proof) | Win-builder and test screenshots |
 
+## Installation
+
+```r
+devtools::install_github("delta17920/r", subdir = "Harddd/jayaHPO")
+```
+
 ## Usage
 
 ```r
