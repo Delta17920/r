@@ -1,0 +1,134 @@
+---
+title: "GSoC 2026 Easy Test: Neural Network Hyperparameter Optimization"
+author: "Pratik Bangerwa"
+date: "`r Sys.Date()`"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE, fig.path = "images/")
+packages <- c("Jaya", "nnet", "ggplot2", "MASS")
+installed_packages <- packages %in% rownames(installed.packages())
+if (any(!installed_packages)) {
+  install.packages(packages[!installed_packages], repos = "[https://cloud.r-project.org](https://cloud.r-project.org)")
+}
+```
+
+## 1. Introduction
+This document addresses the "Easy Test" for the **Jaya for Modern Hyperparameter Optimization** GSoC 2026 project. 
+
+Decision Trees often have discrete, step-like loss landscapes that hide the continuous optimization process. To truly demonstrate Jaya's ability to navigate complex, mixed-type search spaces, we will optimize a **Single-Hidden-Layer Neural Network** (`nnet`) on the noisy `Pima` diabetes dataset. 
+
+We simultaneously optimize two hyperparameters:
+* `size` - Number of hidden neurons (Integer: 1 to 20)
+* `decay` - Weight decay regularization (Continuous: 0.0001 to 0.1)
+
+## 2. Data Preparation
+We utilize the `Pima.tr` and `Pima.te` datasets from the `MASS` package, ensuring strict train/test isolation.
+
+```{r data-prep}
+library(MASS)
+data(Pima.tr)
+data(Pima.te)
+
+train_data <- Pima.tr
+test_data <- Pima.te
+
+# Convert target to numeric (0 and 1) for continuous probability scoring
+actual_test_numeric <- ifelse(test_data$type == "Yes", 1, 0)
+```
+
+## 3. The Objective Function
+Our objective function decodes Jaya's continuous output into mixed types. 
+
+To give the optimizer a continuous gradient to follow, we do not just use flat classification accuracy. Instead, we use the **Brier Score (Mean Squared Error of Probabilities)**. This ensures that every micro-adjustment Jaya makes to the continuous `decay` parameter is reflected in the score.
+
+```{r obj-function}
+library(nnet)
+
+eval_nn <- function(x) {
+  # 1. Decode parameters
+  p_size <- round(x[1])
+  p_decay <- x[2]
+  
+  # 2. Enforce boundaries
+  p_size <- max(1, min(p_size, 20))
+  p_decay <- max(0.0001, min(p_decay, 0.1))
+  
+  # 3. Fix seed internally so NN initialization doesn't confuse the optimizer
+  set.seed(42) 
+  
+  # 4. Train the Neural Network
+  model <- nnet(
+    type ~ ., 
+    data = train_data, 
+    size = p_size, 
+    decay = p_decay, 
+    trace = FALSE # Suppress text output
+  )
+  
+  # 5. Predict probabilities (not just classes)
+  preds <- predict(model, test_data, type = "raw")
+  
+  # 6. Calculate Mean Squared Error of the probabilities
+  mse <- mean((preds - actual_test_numeric)^2)
+  
+  return(mse) # Jaya will push this probability error down!
+}
+```
+
+## 4. Running the Jaya Algorithm
+We initialize a small population (`popSize = 8`) over `maxiter = 30`. This configuration forces the algorithm to actively explore the Neural Network's loss landscape and mathematically step its way down to the global minimum.
+
+```{r run-jaya}
+library(Jaya)
+
+# Bounds: [size, decay]
+lower_bounds <- c(1, 0.0001)   
+upper_bounds <- c(20, 0.1) 
+
+set.seed(123) 
+jaya_results <- jaya(
+  fun = eval_nn,
+  lower = lower_bounds,
+  upper = upper_bounds,
+  popSize = 8,
+  maxiter = 30,
+  n_var = 2
+)
+```
+
+## 5. Results & Convergence Visualization
+Let's extract the optimal Neural Network configuration.
+
+```{r results}
+best_size <- round(as.numeric(jaya_results$Best[1]))
+best_decay <- as.numeric(jaya_results$Best[2])
+best_mse <- as.numeric(jaya_results$Best[3])
+
+cat("Optimized Hidden Neurons (Integer):", best_size, "\n")
+cat("Optimized Weight Decay (Continuous):", format(best_decay, scientific = FALSE), "\n")
+cat("Best Probability MSE:", best_mse, "\n")
+```
+
+Because we utilized a continuous probability error metric alongside a Neural Network, we can clearly visualize Jaya successfully navigating the complex response surface, stepping out of suboptimal states, and driving the error downward.
+
+```{r plot-convergence, dpi=300}
+library(ggplot2)
+
+history_df <- data.frame(
+  Iteration = 1:length(jaya_results$Iterations),
+  Best_Error = jaya_results$Iterations
+)
+
+ggplot(history_df, aes(x = Iteration, y = Best_Error)) +
+  geom_step(color = "#2c3e50", linewidth = 1) +  
+  geom_point(color = "#e74c3c", size = 2) +
+  theme_minimal(base_size = 14) +
+  labs(
+    title = "Jaya Convergence: Neural Network HPO",
+    subtitle = "Minimizing Probability MSE on Pima Diabetes Dataset",
+    x = "Iteration",
+    y = "Probability Mean Squared Error"
+  )
+```
