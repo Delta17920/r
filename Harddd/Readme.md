@@ -15,11 +15,6 @@ The package fulfills all Hard Test requirements:
 - Includes 15 unit tests via `testthat` covering all parameter types and edge cases
 - Builds successfully on win-builder (R-devel and R-release) with 0 errors and 0 warnings
 
-## Installation
-
-```r
-devtools::install_github("yourgithubusername/jayaHPO", subdir = "Harddd/jayaHPO")
-```
 
 ## Usage
 
