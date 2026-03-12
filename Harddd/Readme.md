@@ -1,8 +1,8 @@
-# jayaHPO — Hard Test Submission
+# jayaHPO - Hard Test Submission
 
 **Applicant:** Pratik Bangerwa  
 **Email:** pratik161106@gmail.com  
-**Test:** Hard Test — GSoC 2026: Jaya for Modern Hyperparameter Optimization
+**Test:** Hard Test - GSoC 2026: Jaya for Modern Hyperparameter Optimization
 
 ## Overview
 
@@ -112,15 +112,15 @@ Passing `[0,1]^D` to Jaya rather than raw parameter bounds prevents large-range 
 15 tests via `testthat` covering:
 
 - Return structure (`best_params`, `best_score`, `history` all present and correct types)
-- Integer decoding correctness — decoded value equals `floor()` of itself, always within `[lower, upper]`
-- Categorical decoding — returned value always belongs to the defined category set
-- Log-scale continuous — decoded value always within `[lower, upper]` across random inputs
-- Input validation — informative errors on bad `fn`, empty `param_space`, `pop_size < 2`
-- Boundary clamp — values outside `[0,1]` are clamped, not crashed on
+- Integer decoding correctness - decoded value equals `floor()` of itself, always within `[lower, upper]`
+- Categorical decoding - returned value always belongs to the defined category set
+- Log-scale continuous - decoded value always within `[lower, upper]` across random inputs
+- Input validation - informative errors on bad `fn`, empty `param_space`, `pop_size < 2`
+- Boundary clamp - values outside `[0,1]` are clamped, not crashed on
 
 ## Build Verification
 
-### testthat — 15 tests, 0 failures
+### testthat - 15 tests, 0 failures
 
 All 15 tests pass locally across all parameter types and edge cases.
 
@@ -130,7 +130,7 @@ All 15 tests pass locally across all parameter types and edge cases.
 
 Checked against R Under development (unstable) `2026-03-11 r89605` on Windows Server 2022 x64 via `win-builder.r-project.org`.
 
-Every check returned `OK`. Tests ran successfully on win-builder's Windows environment (`Running 'testthat.R'` — OK).
+Every check returned `OK`. Tests ran successfully on win-builder's Windows environment (`Running 'testthat.R'` - OK).
 
 **Status: 1 NOTE**
 
@@ -143,7 +143,7 @@ Maintainer: 'Pratik Bangerwa <pratik161106@gmail.com>'
 New submission
 ```
 
-This note is **automatically generated for every package that has never been submitted to CRAN before**. It is not a code issue, not a warning, and not fixable — it will disappear permanently after the first accepted CRAN submission. CRAN policy explicitly exempts this note from causing rejection. No errors, no warnings.
+This note is **automatically generated for every package that has never been submitted to CRAN before**. It is not a code issue, not a warning, and not fixable - it will disappear permanently after the first accepted CRAN submission. CRAN policy explicitly exempts this note from causing rejection. No errors, no warnings.
 
 ![Win-builder R-devel](jayaHPO/proof/winbuilder_devel.png)
 
@@ -151,9 +151,9 @@ This note is **automatically generated for every package that has never been sub
 
 Checked against R version `4.5.2 Patched (2026-02-13 r89426)` on Windows Server 2022 x64.
 
-Every check returned `OK`. Tests ran successfully (`Running 'testthat.R'` — OK). PDF and HTML manual both built cleanly.
+Every check returned `OK`. Tests ran successfully (`Running 'testthat.R'` - OK). PDF and HTML manual both built cleanly.
 
-**Status: 1 NOTE** — same "New submission" note as above, same explanation applies.
+**Status: 1 NOTE** - same "New submission" note as above, same explanation applies.
 
 ![Win-builder R-release](jayaHPO/proof/winbuilder_release.png)
 
