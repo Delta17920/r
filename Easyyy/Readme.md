@@ -8,20 +8,22 @@ Pratik Bangerwa
 This document addresses the “Easy Test” for the **Jaya for Modern
 Hyperparameter Optimization** GSoC 2026 project.
 
-Decision Trees often have discrete, step-like loss landscapes that hide
-the continuous optimization process. To truly demonstrate Jaya’s ability
-to navigate complex, mixed-type search spaces, we will optimize a
-**Single-Hidden-Layer Neural Network** (`nnet`) on the noisy `Pima`
+Decision Trees often have discrete, step-like loss landscapes that
+obscure the continuous optimization process. To better demonstrate
+Jaya’s ability to navigate a smooth, mixed-type search space, we
+optimize a **Single-Hidden-Layer Neural Network** (`nnet`) on the `Pima`
 diabetes dataset.
 
-We simultaneously optimize two hyperparameters: \* `size` - Number of
-hidden neurons (Integer: 1 to 20) \* `decay` - Weight decay
-regularization (Continuous: 0.0001 to 0.1)
+We simultaneously optimize two hyperparameters:
+
+- `size` — Number of hidden neurons (Integer: 1 to 20)
+- `decay` — Weight decay regularization (Continuous: 0.0001 to 0.1,
+  log-scale)
 
 ## 2. Data Preparation
 
-We utilize the `Pima.tr` and `Pima.te` datasets from the `MASS` package,
-ensuring strict train/test isolation.
+We use the `Pima.tr` and `Pima.te` datasets from the `MASS` package with
+strict train/test isolation.
 
 ``` r
 library(MASS)
@@ -29,90 +31,111 @@ data(Pima.tr)
 data(Pima.te)
 
 train_data <- Pima.tr
-test_data <- Pima.te
+test_data  <- Pima.te
 
-# Convert target to numeric (0 and 1) for continuous probability scoring
+# Convert target to numeric (0/1) for probability-based scoring
 actual_test_numeric <- ifelse(test_data$type == "Yes", 1, 0)
 ```
 
 ## 3. The Objective Function
 
-Our objective function decodes Jaya’s continuous output into mixed
-types.
+The objective function receives Jaya’s raw continuous vector and decodes
+it into valid hyperparameters before training.
 
-To give the optimizer a continuous gradient to follow, we do not just
-use flat classification accuracy. Instead, we use the **Brier Score
-(Mean Squared Error of Probabilities)**. This ensures that every
-micro-adjustment Jaya makes to the continuous `decay` parameter is
-reflected in the score.
+`size` is an integer parameter and is decoded using the floor-based
+formula with a +0.999 offset, which ensures uniform sampling probability
+across all integer values in \[1, 20\]. Using `round()` would assign
+half the probability mass to the endpoints (1 and 20) compared to
+interior values, which biases the search.
+
+`decay` spans three orders of magnitude (0.0001 to 0.1), so it is
+decoded on a log scale. A linear decode would spend the majority of the
+search budget in the upper range (0.05 to 0.1) and severely
+under-explore the lower, more sensitive region.
+
+Rather than flat classification accuracy, we use the **Brier Score (Mean
+Squared Error of Probabilities)** as the objective. This provides a
+smooth, continuous signal: every adjustment Jaya makes to `decay`
+produces a measurable change in the score, giving the optimizer a
+well-defined surface to descend.
+
+The random seed is set **once before calling `jaya()`**, not inside the
+objective function. Fixing a seed inside the objective would freeze
+every neural network to the same initialization regardless of its
+hyperparameters, artificially smoothing the loss surface and producing
+misleading results.
 
 ``` r
 library(nnet)
 
 eval_nn <- function(x) {
-  # 1. Decode parameters
-  p_size <- round(x[1])
-  p_decay <- x[2]
-  
-  # 2. Enforce boundaries
-  p_size <- max(1, min(p_size, 20))
+  # Decode size: floor-based integer decoding with uniform bucket widths
+  p_size <- floor(1 + x[1] * (20 - 1 + 0.999))
+  p_size <- max(1L, min(p_size, 20L))
+
+  # Decode decay: log-scale for parameters spanning multiple orders of magnitude
+  p_decay <- exp(log(0.0001) + x[2] * (log(0.1) - log(0.0001)))
   p_decay <- max(0.0001, min(p_decay, 0.1))
-  
-  # 3. Fix seed internally so NN initialization doesn't confuse the optimizer
-  set.seed(42) 
-  
-  # 4. Train the Neural Network
+
+  # Train the neural network
   model <- nnet(
-    type ~ ., 
-    data = train_data, 
-    size = p_size, 
-    decay = p_decay, 
-    trace = FALSE # Suppress text output
+    type ~ .,
+    data  = train_data,
+    size  = p_size,
+    decay = p_decay,
+    trace = FALSE
   )
-  
-  # 5. Predict probabilities (not just classes)
+
+  # Predict probabilities
   preds <- predict(model, test_data, type = "raw")
-  
-  # 6. Calculate Mean Squared Error of the probabilities
+
+  # Brier Score: continuous, smooth signal for the optimizer
   mse <- mean((preds - actual_test_numeric)^2)
-  
-  return(mse) # Jaya will push this probability error down!
+
+  return(mse)
 }
 ```
 
 ## 4. Running the Jaya Algorithm
 
-We initialize a small population (`popSize = 8`) over `maxiter = 30`.
-This configuration forces the algorithm to actively explore the Neural
-Network’s loss landscape and mathematically step its way down to the
-global minimum.
+We pass a normalized internal search space of $[0,1]^2$ to Jaya. All
+decoding from the internal representation to valid hyperparameters
+happens inside `eval_nn`. The seed is set here, once, before the
+optimization run begins.
 
 ``` r
 library(Jaya)
 
-# Bounds: [size, decay]
-lower_bounds <- c(1, 0.0001)   
-upper_bounds <- c(20, 0.1) 
+# Internal search space: [0, 1]^2
+# Decoding to actual parameter ranges happens inside eval_nn
+lower_bounds <- c(0, 0)
+upper_bounds <- c(1, 1)
 
-set.seed(123) 
+set.seed(123)
 jaya_results <- jaya(
-  fun = eval_nn,
-  lower = lower_bounds,
-  upper = upper_bounds,
+  fun     = eval_nn,
+  lower   = lower_bounds,
+  upper   = upper_bounds,
   popSize = 8,
   maxiter = 30,
-  n_var = 2
+  n_var   = 2
 )
 ```
 
 ## 5. Results & Convergence Visualization
 
-Let’s extract the optimal Neural Network configuration.
+Extract and decode the best configuration found.
 
 ``` r
-best_size <- round(as.numeric(jaya_results$Best[1]))
-best_decay <- as.numeric(jaya_results$Best[2])
-best_mse <- as.numeric(jaya_results$Best[3])
+best_raw   <- as.numeric(jaya_results$Best[1:2])
+
+best_size  <- floor(1 + best_raw[1] * (20 - 1 + 0.999))
+best_size  <- max(1L, min(best_size, 20L))
+
+best_decay <- exp(log(0.0001) + best_raw[2] * (log(0.1) - log(0.0001)))
+best_decay <- max(0.0001, min(best_decay, 0.1))
+
+best_mse   <- as.numeric(jaya_results$Best[3])
 
 cat("Optimized Hidden Neurons (Integer):", best_size, "\n")
 ```
@@ -123,36 +146,35 @@ cat("Optimized Hidden Neurons (Integer):", best_size, "\n")
 cat("Optimized Weight Decay (Continuous):", format(best_decay, scientific = FALSE), "\n")
 ```
 
-    ## Optimized Weight Decay (Continuous): 0.009934683
+    ## Optimized Weight Decay (Continuous): 0.1
 
 ``` r
 cat("Best Probability MSE:", best_mse, "\n")
 ```
 
-    ## Best Probability MSE: 0.1389628
+    ## Best Probability MSE: 0.1409495
 
-Because we utilized a continuous probability error metric alongside a
-Neural Network, we can clearly visualize Jaya successfully navigating
-the complex response surface, stepping out of suboptimal states, and
-driving the error downward.
+The convergence plot below shows Jaya navigating the neural network loss
+surface across iterations, stepping out of suboptimal configurations and
+driving the Brier Score downward.
 
 ``` r
 library(ggplot2)
 
 history_df <- data.frame(
-  Iteration = 1:length(jaya_results$Iterations),
+  Iteration  = seq_along(jaya_results$Iterations),
   Best_Error = jaya_results$Iterations
 )
 
 ggplot(history_df, aes(x = Iteration, y = Best_Error)) +
-  geom_step(color = "#2c3e50", linewidth = 1) +  
+  geom_step(color = "#2c3e50", linewidth = 1) +
   geom_point(color = "#e74c3c", size = 2) +
   theme_minimal(base_size = 14) +
   labs(
-    title = "Jaya Convergence: Neural Network HPO",
-    subtitle = "Minimizing Probability MSE on Pima Diabetes Dataset",
-    x = "Iteration",
-    y = "Probability Mean Squared Error"
+    title    = "Jaya Convergence: Neural Network HPO",
+    subtitle = "Minimizing Brier Score on Pima Diabetes Dataset",
+    x        = "Iteration",
+    y        = "Brier Score (Probability MSE)"
   )
 ```
 
