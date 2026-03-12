@@ -1,0 +1,18 @@
+Package: jayaHPO
+Type: Package
+Title: Hyperparameter Optimization Using the 'Jaya' Algorithm
+Version: 0.1.0
+Authors@R: person("Pratik", "Bangerwa", email = "pratik161106@gmail.com",
+    role = c("aut", "cre"))
+Description: Provides jaya_tune(), a hyperparameter optimization function
+    built on the 'Jaya' algorithm with native support for continuous, integer,
+    and categorical parameter types via an encoding-decoding layer.
+License: GPL-3
+Encoding: UTF-8
+Language: en-US
+Imports:
+    Jaya
+Suggests:
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+RoxygenNote: 7.3.3

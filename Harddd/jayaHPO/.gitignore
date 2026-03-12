@@ -1,0 +1,16 @@
+# R package build artifacts
+*.Rcheck/
+*.tar.gz
+*.zip
+
+# RStudio
+*.Rproj
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
